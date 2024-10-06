@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>نظام عهدة الكشافة</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Bootstrap CSS for styling -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center my-4">نظام عهدة كشافة العذراء مريم بمسرة</h1>
+
+    <!-- Authentication Section -->
+    <div id="auth-section">
+      <h2>Login</h2>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">البريد الالكتروني:</label>
+          <input type="email" id="login-email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">كلمة السر:</label>
+          <input type="password" id="login-password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">تسجيل دخول</button>
+      </form>
+    </div>
+
+    <!-- Admin Section -->
+    <div id="admin-section" class="hidden">
+      <h2>وحدة التحكم</h2>
+      <button id="logout-admin" class="btn btn-danger mb-3">تسجيل خروج</button>
+      
+      <!-- Create User and Role Buttons -->
+      <button id="create-user-btn" class="btn btn-success mb-3">اضافة مستخدم جديد</button>
+      <button id="create-role-btn" class="btn btn-secondary mb-3">اضافة وحدة جديدة</button>
+      <button id="switch-user-mode-btn" class="btn btn-info mb-3">نظام الطلبات</button>
+      
+      <!-- Product Management -->
+      <h3>اضافة منتج</h3>
+      <form id="product-form">
+        <div class="form-group">
+          <label for="product-name-en">الاسم بالانجليزي:</label>
+          <input type="text" id="product-name-en" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="product-name-ar">الاسم بالعربي:</label>
+          <input type="text" id="product-name-ar" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="product-counter">العدد بالعهدة:</label>
+          <input type="number" id="product-counter" class="form-control" min="0" required>
+        </div>
+        <div class="form-group">
+          <label for="product-image">صورة العهدة:</label>
+          <input type="file" id="product-image" class="form-control-file" accept="image/*" required>
+        </div>
+        <button type="submit" class="btn btn-success">اضافة العهدة</button>
+      </form>
+
+      <!-- Products Table -->
+      <h3 class="mt-4">المنجات</h3>
+      <table class="table table-bordered" id="products-table">
+        <thead>
+          <tr>
+            <th>الصورة</th>
+            <th>الاسم بالانجليزي</th>
+            <th>الاسم بالعربي</th>
+            <th>العدد</th>
+            <th>الاختيارات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Products will be dynamically added here -->
+        </tbody>
+      </table>
+
+      <!-- Reservations Approval Section -->
+      <h3 class="mt-4">قبول و رفض الطلبات</h3>
+      <table class="table table-bordered" id="reservations-approval-table">
+        <thead>
+          <tr>
+            <th>البريد الالكتروني</th>
+            <th>المنجات</th>
+            <th>الكمية</th>
+            <th>تاريخ بدء الحجز</th>
+            <th>تاريخ عودة العهدة</th>
+            <th>الحالة</th>
+            <th>الاختيارات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Reservations for approval will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- User Section -->
+    <div id="user-section" class="hidden">
+      <h2>نظام الطلبات</h2>
+      <button id="logout-user" class="btn btn-danger mb-3">تسجيل الخروج</button>
+      
+      <!-- Search Bar -->
+      <div class="form-group">
+        <input type="text" id="search-input" class="form-control" placeholder="Search for products by name...">
+      </div>
+      <button id="reset-search-btn" class="btn btn-secondary mb-3">مسح البحث</button>
+      
+      <!-- Products Catalog -->
+      <h3>المنتجات المتاحة</h3>
+      <div class="row" id="user-products">
+        <!-- Products will be dynamically added here -->
+      </div>
+
+      <!-- Reservations Table -->
+      <h3 class="mt-4">طلبات الحجز السابقة</h3>
+      <table class="table table-bordered" id="reservations-table">
+        <thead>
+          <tr>
+            <th>المنتج</th>
+            <th>الكمية</th>
+            <th>اسم المستلم</th>
+            <th>رقم المستلم</th>
+            <th>الوحدة</th>
+            <th>حجز من</th>
+            <th>حجز الي</th>
+            <th>الحالة</th>
+            <th>الاختيارات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Reservations will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="create-user-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Create New User</h2>
+        <form id="create-user-form">
+          <div class="form-group">
+            <label for="new-user-email">البريد الالكتروني:</label>
+            <input type="email" id="new-user-email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="new-user-password">الرقم السري:</label>
+            <input type="password" id="new-user-password" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="new-user-role">نظام التحكم:</label>
+            <select id="new-user-role" class="form-control" required>
+              <!-- Roles will be dynamically loaded here -->
+            </select>
+          </div>
+          <button type="submit" class="btn btn-success">اضافة المستخدم</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Create Role Modal -->
+    <div id="create-role-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>اضافة نوع مستخدم</h2>
+        <form id="create-role-form">
+          <div class="form-group">
+            <label for="new-role-name">اسم النوع:</label>
+            <input type="text" id="new-role-name" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-success">اضافة النوع</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-product-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>تعديل منتج</h2>
+        <form id="edit-product-form">
+          <div class="form-group">
+            <label for="edit-product-name-en">الاسم بالانجليزي:</label>
+            <input type="text" id="edit-product-name-en" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-product-name-ar">الاسم بالعربي:</label>
+            <input type="text" id="edit-product-name-ar" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-product-counter">عدد العهدة:</label>
+            <input type="number" id="edit-product-counter" class="form-control" min="0" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-product-image">صورة المنتج:</label>
+            <input type="file" id="edit-product-image" class="form-control-file" accept="image/*">
+          </div>
+          <button type="submit" class="btn btn-primary">تعديل المنتج</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div aria-live="polite" aria-atomic="true" style="position: relative;">
+      <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+        <!-- Toasts will be dynamically added here -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <!-- Note: jQuery is required for Bootstrap Toasts -->
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Main JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
